@@ -878,19 +878,29 @@
   }
 
   async function checkUsageLimit() {
-    if (!currentUser) return true;
+    if (!currentUser) return false;
     if (userPlan === 'standard' || userPlan === 'premium') return false;
 
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
+    try {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
 
-    const { count } = await supabase
-      .from('usage_logs')
-      .select('*', { count: 'exact' })
-      .eq('user_id', currentUser.id)
-      .gte('created_at', weekAgo.toISOString());
+      const { count, error } = await supabase
+        .from('usage_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', currentUser.id)
+        .gte('created_at', weekAgo.toISOString());
 
-    return (count || 0) >= 1;
+      if (error) {
+        console.error('usage check error:', error);
+        return false; // エラー時は制限しない
+      }
+
+      return (count || 0) >= 1;
+    } catch(e) {
+      console.error('usage check exception:', e);
+      return false; // 例外時は制限しない
+    }
   }
 
   async function logUsage() {
@@ -963,14 +973,14 @@
 
   // ===== 献立生成 =====
   async function generateMealPlan() {
-    // ログインチェック
-    if (!currentUser) {
-      const errBox = document.getElementById('error-box');
-      errBox.textContent = '⚠️ 献立を生成するにはGoogleログインが必要です。';
-      errBox.classList.add('show');
-      document.getElementById('login-btn').style.display = 'inline-block';
-      return;
-    }
+    // ログインチェック（一時的に無効化）
+    // if (!currentUser) {
+    //   const errBox = document.getElementById('error-box');
+    //   errBox.textContent = '⚠️ 献立を生成するにはGoogleログインが必要です。';
+    //   errBox.classList.add('show');
+    //   document.getElementById('login-btn').style.display = 'inline-block';
+    //   return;
+    // }
 
     // 利用制限チェック
     const isLimited = await checkUsageLimit();
