@@ -8,7 +8,6 @@
 <title>AI❤️7Daysごはん｜7日分の献立を自動生成</title>
 <link rel="manifest" href="#" />
 <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --green-deep: #1e3d1a;
@@ -1266,6 +1265,34 @@
   if (isIOS && !isStandalone) {
     document.getElementById('pwa-banner').style.display = 'block';
   }
+</script>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  // Supabase再初期化（ライブラリ読み込み後）
+  try {
+    const _url = 'https://wbofpgwntxggjumwekeo.supabase.co';
+    const _key = 'sb_publishable_V2HZ2BJRml8UDCB_i1CMHw_UfJgJ3jf';
+    if (window.supabase) {
+      supabase = window.supabase.createClient(_url, _key);
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user) {
+          currentUser = session.user;
+          try {
+            document.getElementById('user-email').textContent = session.user.email;
+            document.getElementById('user-info').style.display = 'flex';
+            document.getElementById('login-btn').style.display = 'none';
+          } catch(e) {}
+        } else {
+          currentUser = null;
+          try {
+            document.getElementById('user-info').style.display = 'none';
+            document.getElementById('login-btn').style.display = 'inline-block';
+          } catch(e) {}
+        }
+      });
+    }
+  } catch(e) { console.error('Supabase re-init error:', e); }
 </script>
 
 </body>
