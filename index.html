@@ -857,9 +857,20 @@
     console.error('Supabase init error:', e);
   }
 
+  function getSupabase() {
+    if (supabase) return supabase;
+    try {
+      const _url = 'https://wbofpgwntxggjumwekeo.supabase.co';
+      const _key = 'sb_publishable_V2HZ2BJRml8UDCB_i1CMHw_UfJgJ3jf';
+      supabase = window.supabase.createClient(_url, _key);
+    } catch(e) { console.error('Supabase lazy init error:', e); }
+    return supabase;
+  }
+
   async function signInWithGoogle() {
-    if (!supabase) return alert('ログイン機能を準備中です');
-    await supabase.auth.signInWithOAuth({
+    const sb = getSupabase();
+    if (!sb) return alert('ブラウザを更新してから再度お試しください');
+    await sb.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin }
     });
@@ -867,7 +878,8 @@
 
   async function signOut() {
     try {
-      if (supabase) await supabase.auth.signOut();
+      const sb = getSupabase();
+      if (sb) await sb.auth.signOut();
     } catch(e) { console.error(e); }
   }
 
