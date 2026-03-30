@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -5,40 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#2d5a27">
 <meta name="description" content="冷蔵庫食材→7日分の献立を自動生成｜AI❤️ごはん">
-<title>AI❤️ごはん｜AI献立プランナー</では追加します！まずファイルを確認してから修正します。内容確認できました。プロンプトとレシピ表示を一気に追加します！次にCSSとレシピ表示UIを追加します。次に献立カードにレシピボタンと展開パネルを追加します。最後にレシピ展開の関数を追加します。GitHubにアップするファイルをコピーします。更新ファイルができました！🎉
-
----
-
-## GitHubに反映する手順
-
-**① github.com/sincere1229/ai-gohan を開く**
-
-**② `index.html`をクリック**
-
-**③ 右上の鉛筆アイコン（Edit）をクリック**
-
-**④ 全選択して削除→新しいファイルの内容を全部ペースト**
-
-**⑤ 「Commit changes」を押す**
-
-→ Vercelが自動で再デプロイされます！
-
----
-
-## 追加された機能
-
-```
-各日のカードに
-「📖 レシピを見る ▼」ボタンが追加
-　↓　タップすると
-⏱️ 調理時間
-🛒 材料一覧
-👩‍🍳 作り方（ステップ番号付き）
-　↓　もう一度タップで
-「📖 レシピを閉じる ▲」
-```
-
-やってみてください！title>
+<title>AI❤️ごはん｜AI献立プランナー</title>
 <link rel="manifest" href="#" />
 <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -582,6 +550,100 @@
 
   .error-box.show { display: block; }
 
+  /* レシピパネル */
+  .recipe-toggle {
+    margin-top: 12px;
+    padding: 8px 14px;
+    background: none;
+    border: 1.5px solid var(--green-pale);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--green-mid);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .recipe-toggle:hover { background: var(--green-pale); }
+
+  .recipe-panel {
+    display: none;
+    margin-top: 12px;
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 14px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .recipe-panel.open { display: block; }
+
+  .recipe-time {
+    font-size: 12px;
+    color: var(--orange);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .recipe-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--green-deep);
+    margin-bottom: 6px;
+    margin-top: 10px;
+  }
+
+  .recipe-ingredients {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .recipe-ingredient-tag {
+    background: white;
+    border: 1px solid var(--green-pale);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .recipe-steps {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .recipe-step {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .recipe-step-num {
+    width: 22px;
+    height: 22px;
+    background: var(--green-mid);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
   /* フッター */
   footer {
     text-align: center;
@@ -916,7 +978,12 @@
       "calories": 数値,
       "protein": 数値,
       "fat": 数値,
-      "carbs": 数値
+      "carbs": 数値,
+      "recipe": {
+        "time": "調理時間（例：20分）",
+        "ingredients": ["食材1（量）", "食材2（量）"],
+        "steps": ["手順1", "手順2", "手順3", "手順4"]
+      }
     }
   ],
   "shopping": [
@@ -987,7 +1054,16 @@
     // 献立カード
     const container = document.getElementById('day-cards');
     const colors = ['#2d5a27','#3d7a32','#4a8a3f','#5a9a4f','#3d7a32','#2d5a27','#4a8a3f'];
-    container.innerHTML = days.map((d, i) => `
+    container.innerHTML = days.map((d, i) => {
+      const recipe = d.recipe || {};
+      const ingredients = (recipe.ingredients || []).map(ing =>
+        `<span class="recipe-ingredient-tag">${ing}</span>`
+      ).join('');
+      const steps = (recipe.steps || []).map((step, si) =>
+        `<li class="recipe-step"><div class="recipe-step-num">${si+1}</div><div>${step}</div></li>`
+      ).join('');
+
+      return `
       <div class="day-card" style="animation-delay:${i*0.08}s;border-left-color:${colors[i]}">
         <div class="day-label">${d.day}</div>
         <div class="day-menu">${d.menu}</div>
@@ -998,8 +1074,16 @@
           <span class="nutrition-pill fat">🥑 F:${d.fat}g</span>
           <span class="nutrition-pill carb">🌾 C:${d.carbs}g</span>
         </div>
+        <button class="recipe-toggle" onclick="toggleRecipe(${i})">📖 レシピを見る ▼</button>
+        <div class="recipe-panel" id="recipe-${i}">
+          <div class="recipe-time">⏱️ 調理時間：${recipe.time || '—'}</div>
+          <div class="recipe-section-title">🛒 材料</div>
+          <div class="recipe-ingredients">${ingredients}</div>
+          <div class="recipe-section-title">👩‍🍳 作り方</div>
+          <ul class="recipe-steps">${steps}</ul>
+        </div>
       </div>
-    `).join('');
+    `}).join('');
 
     // 買い物リスト
     const shopCard = document.getElementById('shopping-card');
@@ -1035,6 +1119,16 @@
     // 表示
     document.getElementById('result-area').classList.add('show');
     document.getElementById('result-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // レシピ展開
+  function toggleRecipe(i) {
+    const panel = document.getElementById('recipe-' + i);
+    const btn = panel.previousElementSibling;
+    panel.classList.toggle('open');
+    btn.textContent = panel.classList.contains('open')
+      ? '📖 レシピを閉じる ▲'
+      : '📖 レシピを見る ▼';
   }
 
   // チェックボックス
