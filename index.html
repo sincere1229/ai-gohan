@@ -862,7 +862,11 @@
     try {
       const _url = 'https://wbofpgwntxggjumwekeo.supabase.co';
       const _key = 'sb_publishable_V2HZ2BJRml8UDCB_i1CMHw_UfJgJ3jf';
-      supabase = window.supabase.createClient(_url, _key);
+      // CDNによって名前空間が異なる場合に対応
+      const client = window.supabase?.createClient || window.supabaseJs?.createClient;
+      if (client) {
+        supabase = client(_url, _key);
+      }
     } catch(e) { console.error('Supabase lazy init error:', e); }
     return supabase;
   }
@@ -1291,26 +1295,31 @@
   }
 </script>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.39.0/umd/supabase.min.js"></script>
 <script>
   try {
     const _url = 'https://wbofpgwntxggjumwekeo.supabase.co';
     const _key = 'sb_publishable_V2HZ2BJRml8UDCB_i1CMHw_UfJgJ3jf';
-    supabase = window.supabase.createClient(_url, _key);
-
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        currentUser = null;
-        userPlan = 'free';
-        document.getElementById('user-info').style.display = 'none';
-        document.getElementById('login-btn').style.display = 'inline-block';
-      } else if (session?.user) {
-        currentUser = session.user;
-        document.getElementById('user-email').textContent = session.user.email;
-        document.getElementById('user-info').style.display = 'flex';
-        document.getElementById('login-btn').style.display = 'none';
-      }
-    });
+    const createClient = window.supabase?.createClient || window.supabaseJs?.createClient;
+    if (createClient) {
+      supabase = createClient(_url, _key);
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+          currentUser = null;
+          userPlan = 'free';
+          document.getElementById('user-info').style.display = 'none';
+          document.getElementById('login-btn').style.display = 'inline-block';
+        } else if (session?.user) {
+          currentUser = session.user;
+          document.getElementById('user-email').textContent = session.user.email;
+          document.getElementById('user-info').style.display = 'flex';
+          document.getElementById('login-btn').style.display = 'none';
+        }
+      });
+    } else {
+      console.error('Supabase library not loaded');
+      document.getElementById('login-btn').style.display = 'inline-block';
+    }
   } catch(e) {
     console.error('Supabase init error:', e);
     document.getElementById('login-btn').style.display = 'inline-block';
