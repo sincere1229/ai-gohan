@@ -1,46 +1,46 @@
+export const config = {
+  maxDuration: 30
+};
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   if (req.method === 'OPTIONS') return res.status(200).end();
-
-  const SUPABASE_URL = process.env.SUPABASE_URL;
-  const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
-
-  const { action, user_id } = req.body || {};
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    if (action === 'check_usage') {
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/usage_logs?user_id=eq.${user_id}&created_at=gte.${weekAgo.toISOString()}&select=id`,
-        {
-          headers: {
-            'apikey': SUPABASE_SECRET_KEY,
-            'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`
-          }
-        }
-      );
-      const data = await response.json();
-      return res.status(200).json({ count: data.length, limited: data.length >= 1 });
+    const body = req.body;
+    const messages = body?.messages;
+
+    // messagesがなければエラー
+    if (!messages) {
+      return res.status(400).json({ error: 'messages is required', received: JSON.stringify(body) });
     }
 
-    if (action === 'log_usage') {
-      await fetch(`${SUPABASE_URL}/rest/v1/usage_logs`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_SECRET_KEY,
-          'Authorization': `Bearer ${SUPABASE_SECRET_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ user_id })
-      });
-      return res.status(200).json({ ok: true });
-    }
+    // 配列でない場合は配列に変換
+    const messagesArray = Array.isArray(messages) ? messages : [messages];
 
-    return res.status(400).json({ error: 'Unknown action' });
-  } catch(e) {
-    return res.status(500).json({ error: e.message });
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        messages: messagesArray
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) return res.status(response.status).json({ error: data });
+    return res.status(200).json(data);
+
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 }
