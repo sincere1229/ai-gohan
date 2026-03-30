@@ -8,6 +8,7 @@
 <title>AI❤️7Daysごはん｜7日分の献立を自動生成</title>
 <link rel="manifest" href="#" />
 <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --green-deep: #1e3d1a;
@@ -656,6 +657,16 @@
   <div class="header-inner">
     <div class="logo">AI<span>❤️</span>7Daysごはん</div>
     <div class="tagline">冷蔵庫食材→7日分の献立を自動生成</div>
+    <div id="auth-area" style="margin-top:12px;">
+      <button id="login-btn" onclick="signInWithGoogle()" style="background:white;color:var(--green-deep);border:none;border-radius:20px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;display:none;">
+        Googleでログイン
+      </button>
+      <div id="user-info" style="display:none;color:var(--green-pale);font-size:12px;display:flex;align-items:center;gap:8px;">
+        <span id="user-email"></span>
+        <span id="plan-badge" style="background:var(--orange);color:white;padding:2px 8px;border-radius:10px;font-size:11px;"></span>
+        <button onclick="signOut()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:10px;padding:4px 10px;font-size:11px;cursor:pointer;">ログアウト</button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -733,6 +744,16 @@
       oninput="document.getElementById('calorie-val').textContent=Number(this.value).toLocaleString()+'kcal'" />
   </div>
 
+  <!-- 課金バナー -->
+  <div id="upgrade-banner" style="display:none;background:linear-gradient(135deg,var(--orange),var(--orange-light));border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;color:white;">
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px;">🔓 もっと使いたい方へ</div>
+    <div style="font-size:13px;margin-bottom:12px;">今週の無料回数を使い切りました。プランをアップグレードすると無制限で使えます！</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="upgradeStandard()" style="background:white;color:var(--orange);border:none;border-radius:12px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;">スタンダード ¥300/月</button>
+      <button onclick="upgradePremium()" style="background:rgba(255,255,255,0.2);color:white;border:2px solid white;border-radius:12px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;">プレミアム ¥500/月</button>
+    </div>
+  </div>
+
   <!-- 生成ボタン -->
   <button class="btn-generate" id="generate-btn" onclick="generateMealPlan()">
     🍽️ 7日分の献立を生成する
@@ -806,6 +827,85 @@
 </footer>
 
 <script>
+  // ===== Supabase初期化 =====
+  const SUPABASE_URL = 'https://wbofpgwntxggjumwekeo.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_V2HZ2BJRml8UDCB_i1CMHw_UfJgJCKKQpxp3YjGmkE4';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let currentUser = null;
+  let userPlan = 'free';
+
+  // ===== 認証状態管理 =====
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    if (session?.user) {
+      currentUser = session.user;
+      document.getElementById('user-email').textContent = session.user.email;
+      document.getElementById('user-info').style.display = 'flex';
+      document.getElementById('login-btn').style.display = 'none';
+      await checkUserPlan();
+    } else {
+      currentUser = null;
+      userPlan = 'free';
+      document.getElementById('user-info').style.display = 'none';
+      document.getElementById('login-btn').style.display = 'inline-block';
+      document.getElementById('plan-badge').textContent = '';
+    }
+  });
+
+  async function signInWithGoogle() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin }
+    });
+  }
+
+  async function signOut() {
+    await supabase.auth.signOut();
+  }
+
+  async function checkUserPlan() {
+    if (!currentUser) return;
+    const { data } = await supabase
+      .from('users')
+      .select('plan')
+      .eq('id', currentUser.id)
+      .single();
+    userPlan = data?.plan || 'free';
+    const badge = document.getElementById('plan-badge');
+    if (userPlan === 'standard') badge.textContent = 'スタンダード';
+    else if (userPlan === 'premium') badge.textContent = 'プレミアム';
+    else badge.textContent = '無料';
+  }
+
+  async function checkUsageLimit() {
+    if (!currentUser) return true;
+    if (userPlan === 'standard' || userPlan === 'premium') return false;
+
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    const { count } = await supabase
+      .from('usage_logs')
+      .select('*', { count: 'exact' })
+      .eq('user_id', currentUser.id)
+      .gte('created_at', weekAgo.toISOString());
+
+    return (count || 0) >= 1;
+  }
+
+  async function logUsage() {
+    if (!currentUser) return;
+    await supabase.from('usage_logs').insert({ user_id: currentUser.id });
+  }
+
+  function upgradeStandard() {
+    alert('Stripe課金機能は近日公開予定です！');
+  }
+
+  function upgradePremium() {
+    alert('Stripe課金機能は近日公開予定です！');
+  }
+
   // ===== 状態管理 =====
   let ingredients = [];
   let selectedPerson = '1人';
@@ -863,6 +963,22 @@
 
   // ===== 献立生成 =====
   async function generateMealPlan() {
+    // ログインチェック
+    if (!currentUser) {
+      const errBox = document.getElementById('error-box');
+      errBox.textContent = '⚠️ 献立を生成するにはGoogleログインが必要です。';
+      errBox.classList.add('show');
+      document.getElementById('login-btn').style.display = 'inline-block';
+      return;
+    }
+
+    // 利用制限チェック
+    const isLimited = await checkUsageLimit();
+    if (isLimited) {
+      document.getElementById('upgrade-banner').style.display = 'block';
+      document.getElementById('error-box').classList.remove('show');
+      return;
+    }
     const allergies = getAllergies();
     const budget = document.getElementById('budget-range').value;
     const cookTime = document.getElementById('time-range').value;
@@ -977,6 +1093,8 @@
       }
 
       renderResult(parsed, calorie);
+      await logUsage();
+      document.getElementById('upgrade-banner').style.display = 'none';
 
     } catch (err) {
       const errBox = document.getElementById('error-box');
