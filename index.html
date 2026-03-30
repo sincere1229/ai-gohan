@@ -866,8 +866,12 @@
   }
 
   async function signOut() {
-    if (!supabase) return;
-    await supabase.auth.signOut();
+    try {
+      if (supabase) await supabase.auth.signOut();
+    } catch(e) { console.error(e); }
+    currentUser = null;
+    document.getElementById('user-info').style.display = 'none';
+    document.getElementById('login-btn').style.display = 'inline-block';
     location.reload();
   }
 
@@ -1016,7 +1020,7 @@
 }`;
 
     // メッセージ組み立て
-    const userContent = [{ type: 'text', text: prompt }];
+    const userContent = prompt;
 
     try {
       let response;
