@@ -867,20 +867,8 @@
 
   async function signOut() {
     try {
-      if (supabase) {
-        await supabase.auth.signOut({ scope: 'global' });
-      }
+      if (supabase) await supabase.auth.signOut();
     } catch(e) { console.error(e); }
-    currentUser = null;
-    userPlan = 'free';
-    // セッションストレージもクリア
-    try {
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('sb-')) localStorage.removeItem(key);
-      });
-    } catch(e) {}
-    document.getElementById('user-info').style.display = 'none';
-    document.getElementById('login-btn').style.display = 'inline-block';
   }
 
   // ログアウトボタンにイベント設定
@@ -1293,30 +1281,28 @@
 
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-  // Supabase再初期化（ライブラリ読み込み後）
   try {
     const _url = 'https://wbofpgwntxggjumwekeo.supabase.co';
     const _key = 'sb_publishable_V2HZ2BJRml8UDCB_i1CMHw_UfJgJ3jf';
-    if (window.supabase) {
-      supabase = window.supabase.createClient(_url, _key);
-      supabase.auth.onAuthStateChange(async (event, session) => {
-        if (session?.user) {
-          currentUser = session.user;
-          try {
-            document.getElementById('user-email').textContent = session.user.email;
-            document.getElementById('user-info').style.display = 'flex';
-            document.getElementById('login-btn').style.display = 'none';
-          } catch(e) {}
-        } else {
-          currentUser = null;
-          try {
-            document.getElementById('user-info').style.display = 'none';
-            document.getElementById('login-btn').style.display = 'inline-block';
-          } catch(e) {}
-        }
-      });
-    }
-  } catch(e) { console.error('Supabase re-init error:', e); }
+    supabase = window.supabase.createClient(_url, _key);
+
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        currentUser = null;
+        userPlan = 'free';
+        document.getElementById('user-info').style.display = 'none';
+        document.getElementById('login-btn').style.display = 'inline-block';
+      } else if (session?.user) {
+        currentUser = session.user;
+        document.getElementById('user-email').textContent = session.user.email;
+        document.getElementById('user-info').style.display = 'flex';
+        document.getElementById('login-btn').style.display = 'none';
+      }
+    });
+  } catch(e) {
+    console.error('Supabase init error:', e);
+    document.getElementById('login-btn').style.display = 'inline-block';
+  }
 </script>
 
 </body>
