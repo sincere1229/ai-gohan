@@ -828,31 +828,38 @@
 
 <script>
   // ===== Supabase初期化 =====
-  const SUPABASE_URL = 'https://wbofpgwntxggjumwekeo.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_V2HZ2BJRml8UDCB_i1CMHw_UfJgJ3jf';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+  let supabase = null;
   let currentUser = null;
   let userPlan = 'free';
 
-  // ===== 認証状態管理 =====
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    if (session?.user) {
-      currentUser = session.user;
-      document.getElementById('user-email').textContent = session.user.email;
-      document.getElementById('user-info').style.display = 'flex';
-      document.getElementById('login-btn').style.display = 'none';
-      await checkUserPlan();
-    } else {
-      currentUser = null;
-      userPlan = 'free';
-      document.getElementById('user-info').style.display = 'none';
-      document.getElementById('login-btn').style.display = 'inline-block';
-      document.getElementById('plan-badge').textContent = '';
-    }
-  });
+  try {
+    const SUPABASE_URL = 'https://wbofpgwntxggjumwekeo.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_V2HZ2BJRml8UDCB_i1CMHw_UfJgJ3jf';
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        currentUser = session.user;
+        try {
+          document.getElementById('user-email').textContent = session.user.email;
+          document.getElementById('user-info').style.display = 'flex';
+          document.getElementById('login-btn').style.display = 'none';
+        } catch(e) { console.error('auth UI error:', e); }
+      } else {
+        currentUser = null;
+        userPlan = 'free';
+        try {
+          document.getElementById('user-info').style.display = 'none';
+          document.getElementById('login-btn').style.display = 'inline-block';
+        } catch(e) { console.error('auth UI error:', e); }
+      }
+    });
+  } catch(e) {
+    console.error('Supabase init error:', e);
+  }
 
   async function signInWithGoogle() {
+    if (!supabase) return alert('ログイン機能を準備中です');
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin }
@@ -860,61 +867,24 @@
   }
 
   async function signOut() {
+    if (!supabase) return;
     await supabase.auth.signOut();
-  }
-
-  async function checkUserPlan() {
-    if (!currentUser) return;
-    const { data } = await supabase
-      .from('users')
-      .select('plan')
-      .eq('id', currentUser.id)
-      .single();
-    userPlan = data?.plan || 'free';
-    const badge = document.getElementById('plan-badge');
-    if (userPlan === 'standard') badge.textContent = 'スタンダード';
-    else if (userPlan === 'premium') badge.textContent = 'プレミアム';
-    else badge.textContent = '無料';
+    location.reload();
   }
 
   async function checkUsageLimit() {
-    if (!currentUser) return false;
-    if (userPlan === 'standard' || userPlan === 'premium') return false;
-
-    try {
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-
-      const { count, error } = await supabase
-        .from('usage_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', currentUser.id)
-        .gte('created_at', weekAgo.toISOString());
-
-      if (error) {
-        console.error('usage check error:', error);
-        return false; // エラー時は制限しない
-      }
-
-      return (count || 0) >= 1;
-    } catch(e) {
-      console.error('usage check exception:', e);
-      return false; // 例外時は制限しない
-    }
+    return false; // 一時的に制限なし
   }
 
   async function logUsage() {
-    if (!currentUser) return;
-    await supabase.from('usage_logs').insert({ user_id: currentUser.id });
+    if (!supabase || !currentUser) return;
+    try {
+      await supabase.from('usage_logs').insert({ user_id: currentUser.id });
+    } catch(e) { console.error('log error:', e); }
   }
 
-  function upgradeStandard() {
-    alert('Stripe課金機能は近日公開予定です！');
-  }
-
-  function upgradePremium() {
-    alert('Stripe課金機能は近日公開予定です！');
-  }
+  function upgradeStandard() { alert('Stripe課金機能は近日公開予定です！'); }
+  function upgradePremium() { alert('Stripe課金機能は近日公開予定です！'); }
 
   // ===== 状態管理 =====
   let ingredients = [];
