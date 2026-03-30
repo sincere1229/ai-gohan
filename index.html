@@ -867,12 +867,20 @@
 
   async function signOut() {
     try {
-      if (supabase) await supabase.auth.signOut();
+      if (supabase) {
+        await supabase.auth.signOut({ scope: 'global' });
+      }
     } catch(e) { console.error(e); }
     currentUser = null;
+    userPlan = 'free';
+    // セッションストレージもクリア
+    try {
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-')) localStorage.removeItem(key);
+      });
+    } catch(e) {}
     document.getElementById('user-info').style.display = 'none';
     document.getElementById('login-btn').style.display = 'inline-block';
-    location.reload();
   }
 
   // ログアウトボタンにイベント設定
