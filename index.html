@@ -199,37 +199,6 @@
 
   .tag-remove:hover { opacity: 1; }
 
-  /* チラシアップロード */
-  .upload-area {
-    border: 2px dashed var(--green-pale);
-    border-radius: 14px;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .upload-area:hover { border-color: var(--green-light); background: rgba(74,138,63,0.04); }
-  .upload-area.has-image { border-style: solid; border-color: var(--green-light); }
-
-  .upload-area input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer;
-  }
-
-  .upload-icon { font-size: 32px; margin-bottom: 8px; }
-  .upload-text { font-size: 13px; color: var(--text-light); }
-  .upload-text strong { color: var(--green-mid); }
-
-  #chirashi-preview {
-    max-width: 100%;
-    max-height: 150px;
-    border-radius: 10px;
-    display: none;
-    margin: 8px auto 0;
-  }
-
   /* アレルギー */
   .allergy-grid {
     display: grid;
@@ -707,24 +676,7 @@
     </div>
   </div>
 
-  <!-- STEP2: チラシ -->
-  <div class="card">
-    <div class="card-title">
-      <div class="icon">📰</div>
-      スーパーのチラシ（任意）
-    </div>
-    <div class="upload-area" id="upload-area">
-      <input type="file" id="chirashi-file" accept="image/*" onchange="handleChirashi(event)" />
-      <div class="upload-icon">📷</div>
-      <div class="upload-text"><strong>タップして撮影 or 選択</strong><br>チラシの特売品を自動読み取り</div>
-      <img id="chirashi-preview" alt="チラシプレビュー" />
-    </div>
-    <div id="chirashi-status" style="font-size:12px;color:var(--green-mid);margin-top:8px;display:none;">
-      ✅ チラシを読み込みました
-    </div>
-  </div>
-
-  <!-- STEP3: アレルギー -->
+  <!-- STEP2: アレルギー -->
   <div class="card">
     <div class="card-title">
       <div class="icon">⚠️</div>
@@ -857,8 +809,6 @@
   // ===== 状態管理 =====
   let ingredients = [];
   let selectedPerson = '1人';
-  let chirashiBase64 = null;
-  let chirashiMimeType = null;
 
   // ===== 食材タグ =====
   function addIngredient() {
@@ -902,24 +852,6 @@
   function getAllergies() {
     return Array.from(document.querySelectorAll('.allergy-chip input:checked'))
       .map(el => el.value);
-  }
-
-  // ===== チラシ =====
-  function handleChirashi(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const result = ev.target.result;
-      chirashiBase64 = result.split(',')[1];
-      chirashiMimeType = file.type;
-      const preview = document.getElementById('chirashi-preview');
-      preview.src = result;
-      preview.style.display = 'block';
-      document.getElementById('upload-area').classList.add('has-image');
-      document.getElementById('chirashi-status').style.display = 'block';
-    };
-    reader.readAsDataURL(file);
   }
 
   // ===== 人数選択 =====
@@ -989,25 +921,7 @@
 }`;
 
     // メッセージ組み立て
-    const userContent = [];
-
-    // チラシ画像があれば追加
-    if (chirashiBase64) {
-      userContent.push({
-        type: 'image',
-        source: {
-          type: 'base64',
-          media_type: chirashiMimeType,
-          data: chirashiBase64
-        }
-      });
-      userContent.push({
-        type: 'text',
-        text: 'これはスーパーのチラシです。特売品を参考に献立に取り入れてください。\n\n' + prompt
-      });
-    } else {
-      userContent.push({ type: 'text', text: prompt });
-    }
+    const userContent = [{ type: 'text', text: prompt }];
 
     try {
       let response;
@@ -1174,29 +1088,46 @@
     const cookTime = document.getElementById('time-range').value;
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{
-            role: 'user',
-            content: `「${menuName}」のレシピを教えてください。調理時間は${cookTime}分以内で。
-必ず以下のJSON形式のみで回答してください。説明文不要。
+      let response;
+      try {
+        response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{
+              role: 'user',
+              content: `「${menuName}」のレシピを教えてください。調理時間は${cookTime}分以内。シンプルに。
+必ず以下のJSON形式のみで回答。説明文不要。数値不要。
 
-{
-  "time": "20分",
-  "ingredients": ["食材1（量）", "食材2（量）"],
-  "steps": ["手順1", "手順2", "手順3"]
-}`
-          }]
-        })
-      });
+{"time":"20分","ingredients":["鶏もも肉200g","醤油大さじ2"],"steps":["切る","焼く","味付け"]}`
+            }]
+          })
+        });
+      } catch(fetchErr) {
+        throw new Error('通信エラー: ' + fetchErr.message);
+      }
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error('サーバーエラー: ' + response.status);
+      }
+
+      let data;
+      try {
+        data = await response.json();
+      } catch(e) {
+        throw new Error('応答の読み取りに失敗しました');
+      }
+
+      if (!data.content || !data.content.length) {
+        throw new Error('応答が空でした');
+      }
+
       const text = data.content.map(b => b.text || '').join('');
       const clean = text.replace(/```json[\s\S]*?```|```/g, '').trim();
       const jsonMatch = clean.match(/\{[\s\S]*\}/);
-      const recipe = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
+      if (!jsonMatch) throw new Error('レシピデータが見つかりません');
+
+      const recipe = JSON.parse(jsonMatch[0]);
 
       const ingredients = (recipe.ingredients || []).map(ing =>
         `<span class="recipe-ingredient-tag">${ing}</span>`
@@ -1216,8 +1147,9 @@
       btn.textContent = '📖 レシピを閉じる ▲';
 
     } catch(err) {
-      panel.innerHTML = '<div style="padding:12px;color:#c62828;font-size:13px;">⚠️ レシピの取得に失敗しました。もう一度お試しください。</div>';
+      panel.innerHTML = `<div style="padding:12px;color:#c62828;font-size:13px;">⚠️ ${err.message || 'レシピの取得に失敗しました'}。もう一度お試しください。</div>`;
       btn.textContent = '📖 レシピを見る ▼';
+      panel.dataset.loaded = 'false';
     }
     btn.disabled = false;
   }
