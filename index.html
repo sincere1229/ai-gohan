@@ -952,34 +952,34 @@
 - 平日の調理時間: ${cookTime}分以内
 - 1日のカロリー目標: ${calorie}kcal
 
-必ず以下のJSON形式のみで回答してください。他のテキストは不要です。
+必ず以下のJSON形式のみで回答してください。マークダウンや説明文は一切不要です。数値は必ず整数で返してください。
 
 {
   "days": [
     {
       "day": "月曜日",
       "menu": "メニュー名",
-      "detail": "料理の簡単な説明（食材・調理法）",
-      "calories": 数値,
-      "protein": 数値,
-      "fat": 数値,
-      "carbs": 数値,
+      "detail": "料理の簡単な説明",
+      "calories": 600,
+      "protein": 30,
+      "fat": 20,
+      "carbs": 80,
       "recipe": {
-        "time": "調理時間（例：20分）",
-        "ingredients": ["食材1（量）", "食材2（量）"],
-        "steps": ["手順1", "手順2", "手順3", "手順4"]
+        "time": "20分",
+        "ingredients": ["鶏もも肉200g", "醤油大さじ2"],
+        "steps": ["食材を切る", "炒める", "味付けする"]
       }
     }
   ],
   "shopping": [
-    {"item": "食材名", "amount": "量・個数", "price": 数値}
+    {"item": "食材名", "amount": "200g", "price": 300}
   ],
-  "totalPrice": 数値,
+  "totalPrice": 3000,
   "weeklyAvg": {
-    "calories": 数値,
-    "protein": 数値,
-    "fat": 数値,
-    "carbs": 数値
+    "calories": 600,
+    "protein": 30,
+    "fat": 20,
+    "carbs": 80
   }
 }`;
 
@@ -1005,18 +1005,29 @@
     }
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: userContent }]
-        })
-      });
+      let response;
+      try {
+        response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: userContent }]
+          })
+        });
+      } catch(fetchErr) {
+        throw new Error('通信エラーが発生しました。電波の良い場所でお試しください。(' + fetchErr.message + ')');
+      }
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch(jsonErr) {
+        throw new Error('サーバーからの応答を読み取れませんでした。もう一度お試しください。');
+      }
 
       if (!response.ok) {
-        throw new Error(`APIエラー: ${response.status} - ${JSON.stringify(data)}`);
+        const errMsg = data?.error?.error?.message || data?.error || response.status;
+        throw new Error('APIエラー: ' + errMsg);
       }
 
       if (!data.content || data.content.length === 0) {
@@ -1024,19 +1035,26 @@
       }
 
       const text = data.content.map(i => i.text || '').join('');
-      const clean = text.replace(/```json|```/g, '').trim();
+      const clean = text.replace(/```json[\s\S]*?```|```/g, '').trim();
 
       let parsed;
       try {
         parsed = JSON.parse(clean);
       } catch(e) {
-        // JSON前後の余分なテキストを除去して再試行
         const jsonMatch = clean.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
-          parsed = JSON.parse(jsonMatch[0]);
+          try {
+            parsed = JSON.parse(jsonMatch[0]);
+          } catch(e2) {
+            throw new Error('献立データの形式が不正でした。もう一度お試しください。');
+          }
         } else {
-          throw new Error('献立データの解析に失敗しました。もう一度お試しください。');
+          throw new Error('献立データが見つかりませんでした。もう一度お試しください。');
         }
+      }
+
+      if (!parsed.days || parsed.days.length === 0) {
+        throw new Error('献立の生成に失敗しました。食材を変えてもう一度お試しください。');
       }
 
       renderResult(parsed, calorie);
@@ -1045,7 +1063,7 @@
       const errBox = document.getElementById('error-box');
       errBox.textContent = '⚠️ ' + (err.message || '生成に失敗しました。しばらく経ってからお試しください。');
       errBox.classList.add('show');
-      console.error('生成エラー:', err);
+      console.error('生成エラー詳細:', err);
     } finally {
       document.getElementById('loading').classList.remove('show');
       document.getElementById('generate-btn').disabled = false;
