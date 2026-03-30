@@ -826,92 +826,100 @@
 </footer>
 
 <script>
-  // ===== Supabase初期化 =====
+  // ===== シンプルな認証管理 =====
+  let currentUser = JSON.parse(localStorage.getItem('ai_gohan_user') || 'null');
   let supabase = null;
-  let currentUser = null;
   let userPlan = 'free';
 
-  try {
-    const SUPABASE_URL = 'https://wbofpgwntxggjumwekeo.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_V2HZ2BJRml8UDCB_i1CMHw_UfJgJ3jf';
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  // ページ読み込み時にUIを更新
+  window.addEventListener('load', () => {
+    updateAuthUI();
+    // URLにアクセストークンがあればSupabase処理
+    const hash = window.location.hash;
+    if (hash.includes('access_token')) {
+      handleOAuthCallback(hash);
+    }
+  });
 
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        currentUser = session.user;
-        try {
-          document.getElementById('user-email').textContent = session.user.email;
-          document.getElementById('user-info').style.display = 'flex';
-          document.getElementById('login-btn').style.display = 'none';
-        } catch(e) { console.error('auth UI error:', e); }
-      } else {
-        currentUser = null;
-        userPlan = 'free';
-        try {
-          document.getElementById('user-info').style.display = 'none';
-          document.getElementById('login-btn').style.display = 'inline-block';
-        } catch(e) { console.error('auth UI error:', e); }
-      }
-    });
-  } catch(e) {
-    console.error('Supabase init error:', e);
+  function updateAuthUI() {
+    if (currentUser) {
+      document.getElementById('user-email').textContent = currentUser.email || 'ログイン中';
+      document.getElementById('user-info').style.display = 'flex';
+      document.getElementById('login-btn').style.display = 'none';
+    } else {
+      document.getElementById('user-info').style.display = 'none';
+      document.getElementById('login-btn').style.display = 'inline-block';
+    }
   }
 
-  function getSupabase() {
-    if (supabase) return supabase;
+  async function handleOAuthCallback(hash) {
+    const params = new URLSearchParams(hash.replace('#', ''));
+    const accessToken = params.get('access_token');
+    if (!accessToken) return;
     try {
-      const _url = 'https://wbofpgwntxggjumwekeo.supabase.co';
-      const _key = 'sb_publishable_V2HZ2BJRml8UDCB_i1CMHw_UfJgJ3jf';
-      // CDNによって名前空間が異なる場合に対応
-      const client = window.supabase?.createClient || window.supabaseJs?.createClient;
-      if (client) {
-        supabase = client(_url, _key);
+      const res = await fetch('https://wbofpgwntxggjumwekeo.supabase.co/auth/v1/user', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'apikey': 'sb_publishable_V2HZ2BJRml8UDCB_i1CMHw_UfJgJ3jf'
+        }
+      });
+      const user = await res.json();
+      if (user.email) {
+        currentUser = { id: user.id, email: user.email, token: accessToken };
+        localStorage.setItem('ai_gohan_user', JSON.stringify(currentUser));
+        window.history.replaceState(null, '', window.location.pathname);
+        updateAuthUI();
       }
-    } catch(e) { console.error('Supabase lazy init error:', e); }
-    return supabase;
+    } catch(e) { console.error('OAuth callback error:', e); }
   }
 
   async function signInWithGoogle() {
-    const sb = getSupabase();
-    if (!sb) return alert('ブラウザを更新してから再度お試しください');
-    await sb.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin }
-    });
+    const SUPABASE_URL = 'https://wbofpgwntxggjumwekeo.supabase.co';
+    const redirectTo = encodeURIComponent(window.location.origin);
+    window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
   }
 
-  async function signOut() {
-    try {
-      const sb = getSupabase();
-      if (sb) await sb.auth.signOut();
-    } catch(e) { console.error(e); }
+  function signOut() {
+    currentUser = null;
+    localStorage.removeItem('ai_gohan_user');
+    updateAuthUI();
   }
+
+  async function checkUsageLimit() {
+    if (!currentUser) return false;
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'check_usage', user_id: currentUser.id })
+      });
+      const data = await res.json();
+      return data.limited || false;
+    } catch(e) { return false; }
+  }
+
+  async function logUsage() {
+    if (!currentUser) return;
+    try {
+      await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'log_usage', user_id: currentUser.id })
+      });
+    } catch(e) {}
+  }
+
+  function upgradeStandard() { alert('Stripe課金機能は近日公開予定です！'); }
+  function upgradePremium() { alert('Stripe課金機能は近日公開予定です！'); }
 
   // ログアウトボタンにイベント設定
   document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', signOut);
-      logoutBtn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        signOut();
-      });
+      logoutBtn.addEventListener('touchend', (e) => { e.preventDefault(); signOut(); });
     }
   });
-
-  async function checkUsageLimit() {
-    return false; // 一時的に制限なし
-  }
-
-  async function logUsage() {
-    if (!supabase || !currentUser) return;
-    try {
-      await supabase.from('usage_logs').insert({ user_id: currentUser.id });
-    } catch(e) { console.error('log error:', e); }
-  }
-
-  function upgradeStandard() { alert('Stripe課金機能は近日公開予定です！'); }
-  function upgradePremium() { alert('Stripe課金機能は近日公開予定です！'); }
 
   // ===== 状態管理 =====
   let ingredients = [];
@@ -1292,37 +1300,6 @@
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
   if (isIOS && !isStandalone) {
     document.getElementById('pwa-banner').style.display = 'block';
-  }
-</script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.39.0/umd/supabase.min.js"></script>
-<script>
-  try {
-    const _url = 'https://wbofpgwntxggjumwekeo.supabase.co';
-    const _key = 'sb_publishable_V2HZ2BJRml8UDCB_i1CMHw_UfJgJ3jf';
-    const createClient = window.supabase?.createClient || window.supabaseJs?.createClient;
-    if (createClient) {
-      supabase = createClient(_url, _key);
-      supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_OUT' || !session) {
-          currentUser = null;
-          userPlan = 'free';
-          document.getElementById('user-info').style.display = 'none';
-          document.getElementById('login-btn').style.display = 'inline-block';
-        } else if (session?.user) {
-          currentUser = session.user;
-          document.getElementById('user-email').textContent = session.user.email;
-          document.getElementById('user-info').style.display = 'flex';
-          document.getElementById('login-btn').style.display = 'none';
-        }
-      });
-    } else {
-      console.error('Supabase library not loaded');
-      document.getElementById('login-btn').style.display = 'inline-block';
-    }
-  } catch(e) {
-    console.error('Supabase init error:', e);
-    document.getElementById('login-btn').style.display = 'inline-block';
   }
 </script>
 
