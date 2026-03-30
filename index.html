@@ -888,24 +888,22 @@
   async function checkUsageLimit() {
     if (!currentUser) return false;
     try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'check_usage', user_id: currentUser.id })
-      });
-      const data = await res.json();
-      return data.limited || false;
+      const key = 'usage_' + currentUser.id;
+      const data = JSON.parse(localStorage.getItem(key) || '[]');
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const recent = data.filter(t => t > weekAgo);
+      localStorage.setItem(key, JSON.stringify(recent));
+      return recent.length >= 1;
     } catch(e) { return false; }
   }
 
   async function logUsage() {
     if (!currentUser) return;
     try {
-      await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'log_usage', user_id: currentUser.id })
-      });
+      const key = 'usage_' + currentUser.id;
+      const data = JSON.parse(localStorage.getItem(key) || '[]');
+      data.push(Date.now());
+      localStorage.setItem(key, JSON.stringify(data));
     } catch(e) {}
   }
 
