@@ -1,0 +1,8 @@
+{
+  "name": "ai-gohan",
+  "version": "1.0.0",
+  "description": "AI❤️ごはん - AI献立プランナー",
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
