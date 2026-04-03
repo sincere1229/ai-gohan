@@ -35,7 +35,6 @@
     overflow-x: hidden;
   }
 
-  /* ヘッダー */
   header {
     background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 60%, var(--green-light) 100%);
     padding: 24px 20px 40px;
@@ -85,7 +84,6 @@
     letter-spacing: 1px;
   }
 
-  /* メインコンテナ */
   main {
     max-width: 680px;
     margin: -20px auto 0;
@@ -96,7 +94,6 @@
     box-sizing: border-box;
   }
 
-  /* カード共通 */
   .card {
     background: var(--white);
     border-radius: var(--radius);
@@ -125,7 +122,6 @@
     font-size: 16px;
   }
 
-  /* 食材入力 */
   .ingredient-input-wrap {
     display: flex;
     gap: 8px;
@@ -199,7 +195,6 @@
 
   .tag-remove:hover { opacity: 1; }
 
-  /* アレルギー */
   .allergy-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -231,7 +226,6 @@
     font-weight: 700;
   }
 
-  /* 設定スライダー */
   .setting-row {
     display: flex;
     align-items: center;
@@ -262,7 +256,6 @@
     height: 4px;
   }
 
-  /* 人数セレクト */
   .person-select {
     display: flex;
     gap: 8px;
@@ -288,7 +281,6 @@
     font-weight: 700;
   }
 
-  /* 生成ボタン */
   .btn-generate {
     width: 100%;
     padding: 18px;
@@ -313,7 +305,6 @@
   .btn-generate:active { transform: translateY(2px); box-shadow: 0 2px 10px rgba(232,112,58,0.3); }
   .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; }
 
-  /* ローディング */
   .loading {
     display: none;
     text-align: center;
@@ -345,11 +336,9 @@
 
   .loading-text { color: var(--text-light); font-size: 14px; }
 
-  /* 結果エリア */
   #result-area { display: none; }
   #result-area.show { display: block; }
 
-  /* 週間献立カード */
   .week-header {
     font-family: 'Kaisei Decol', serif;
     font-size: 20px;
@@ -414,7 +403,6 @@
   .fat { background: #fce4ec; color: #c62828; }
   .carb { background: #e3f2fd; color: #1565c0; }
 
-  /* 買い物リスト */
   .shopping-card {
     background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
     border-radius: var(--radius);
@@ -479,7 +467,6 @@
   .budget-label { font-size: 13px; opacity: 0.8; }
   .budget-amount { font-family: 'Kaisei Decol', serif; font-size: 24px; color: var(--orange-light); }
 
-  /* 栄養サマリー */
   .nutrition-summary {
     background: var(--white);
     border-radius: var(--radius);
@@ -496,7 +483,6 @@
   .nutrition-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
   .nutrition-bar-val { font-size: 12px; font-weight: 700; color: var(--text); width: 70px; text-align: right; flex-shrink: 0; }
 
-  /* 再生成ボタン */
   .btn-regenerate {
     width: 100%;
     padding: 14px;
@@ -514,7 +500,6 @@
 
   .btn-regenerate:hover { background: var(--green-pale); }
 
-  /* エラー */
   .error-box {
     background: #fff5f5;
     border: 2px solid #ffcdd2;
@@ -528,7 +513,100 @@
 
   .error-box.show { display: block; }
 
-  /* レシピパネル */
+  /* ===== 課金バナー（改善版） ===== */
+  #upgrade-banner {
+    display: none;
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 24px rgba(232,112,58,0.3);
+  }
+
+  .upgrade-header {
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 100%);
+    padding: 16px 20px 12px;
+    color: white;
+  }
+
+  .upgrade-title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .upgrade-subtitle {
+    font-size: 12px;
+    opacity: 0.9;
+  }
+
+  .upgrade-plans {
+    background: white;
+    padding: 16px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .plan-card {
+    flex: 1;
+    min-width: 140px;
+    border: 2px solid var(--green-pale);
+    border-radius: 14px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+  }
+
+  .plan-card:hover {
+    border-color: var(--orange);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(232,112,58,0.2);
+  }
+
+  .plan-card.featured {
+    border-color: var(--orange);
+    background: #fff8f5;
+  }
+
+  .plan-badge {
+    font-size: 10px;
+    background: var(--orange);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+
+  .plan-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--green-deep);
+    margin-bottom: 2px;
+  }
+
+  .plan-price {
+    font-family: 'Kaisei Decol', serif;
+    font-size: 22px;
+    color: var(--orange);
+    font-weight: 700;
+  }
+
+  .plan-price span {
+    font-size: 12px;
+    color: var(--text-light);
+  }
+
+  .plan-desc {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 4px;
+  }
+
   .recipe-toggle {
     margin-top: 12px;
     padding: 8px 14px;
@@ -622,7 +700,6 @@
     margin-top: 2px;
   }
 
-  /* フッター */
   footer {
     text-align: center;
     padding: 20px;
@@ -630,7 +707,6 @@
     color: var(--text-light);
   }
 
-  /* PWAバナー */
   .pwa-banner {
     background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 100%);
     color: white;
@@ -681,9 +757,7 @@
       <input type="text" class="ingredient-input" id="ingredient-input" placeholder="例：鶏もも肉、卵、キャベツ…" />
       <button class="btn-add" onclick="addIngredient()">＋</button>
     </div>
-    <div class="ingredient-tags" id="ingredient-tags">
-      <!-- タグがここに表示される -->
-    </div>
+    <div class="ingredient-tags" id="ingredient-tags"></div>
   </div>
 
   <!-- STEP2: アレルギー -->
@@ -704,7 +778,7 @@
     </div>
   </div>
 
-  <!-- STEP4: 設定 -->
+  <!-- STEP3: 設定 -->
   <div class="card">
     <div class="card-title">
       <div class="icon">⚙️</div>
@@ -743,13 +817,24 @@
       oninput="document.getElementById('calorie-val').textContent=Number(this.value).toLocaleString()+'kcal'" />
   </div>
 
-  <!-- 課金バナー -->
-  <div id="upgrade-banner" style="display:none;background:linear-gradient(135deg,var(--orange),var(--orange-light));border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;color:white;">
-    <div style="font-weight:700;font-size:15px;margin-bottom:6px;">🔓 もっと使いたい方へ</div>
-    <div style="font-size:13px;margin-bottom:12px;">今週の無料回数を使い切りました。プランをアップグレードすると無制限で使えます！</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button onclick="upgradeStandard()" style="background:white;color:var(--orange);border:none;border-radius:12px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;">スタンダード ¥300/月</button>
-      <button onclick="upgradePremium()" style="background:rgba(255,255,255,0.2);color:white;border:2px solid white;border-radius:12px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;">プレミアム ¥500/月</button>
+  <!-- 課金バナー（改善版） -->
+  <div id="upgrade-banner">
+    <div class="upgrade-header">
+      <div class="upgrade-title">🔓 今週の無料回数を使い切りました</div>
+      <div class="upgrade-subtitle">プランをアップグレードして、献立をもっと生成しましょう！</div>
+    </div>
+    <div class="upgrade-plans">
+      <a class="plan-card" href="https://buy.stripe.com/test_5kQdRb1OrfgN8Xg6h67N600" target="_blank">
+        <div class="plan-name">スタンダード</div>
+        <div class="plan-price">¥300<span>/月</span></div>
+        <div class="plan-desc">週3回まで生成</div>
+      </a>
+      <a class="plan-card featured" href="https://buy.stripe.com/test_28E00lgJl3y5b5ocFu7N601" target="_blank">
+        <div class="plan-badge">おすすめ</div>
+        <div class="plan-name">プレミアム</div>
+        <div class="plan-price">¥500<span>/月</span></div>
+        <div class="plan-desc">無制限で生成</div>
+      </a>
     </div>
   </div>
 
@@ -758,10 +843,8 @@
     🍽️ 7日分の献立を生成する
   </button>
 
-  <!-- エラー -->
   <div class="error-box" id="error-box"></div>
 
-  <!-- ローディング -->
   <div class="loading" id="loading">
     <div class="loading-dots">
       <span></span><span></span><span></span>
@@ -771,9 +854,7 @@
 
   <!-- 結果エリア -->
   <div id="result-area">
-
     <div class="week-header">📅 今週の献立</div>
-
     <div id="day-cards"></div>
 
     <div class="shopping-card" id="shopping-card" style="display:none;">
@@ -815,26 +896,21 @@
     </div>
 
     <button class="btn-regenerate" onclick="generateMealPlan()">🔄 別のプランを提案してもらう</button>
-
   </div>
 
 </main>
 
 <footer>
-  AI❤️7Daysごはん v1.0<br>
+  AI❤️7Daysごはん v1.1<br>
   ※栄養情報は参考値です。医療目的での使用はご遠慮ください。
 </footer>
 
 <script>
-  // ===== シンプルな認証管理 =====
+  // ===== 認証管理 =====
   let currentUser = JSON.parse(localStorage.getItem('ai_gohan_user') || 'null');
-  let supabase = null;
-  let userPlan = 'free';
 
-  // ページ読み込み時にUIを更新
   window.addEventListener('load', () => {
     updateAuthUI();
-    // URLにアクセストークンがあればSupabase処理
     const hash = window.location.hash;
     if (hash.includes('access_token')) {
       handleOAuthCallback(hash);
@@ -886,9 +962,8 @@
   }
 
   async function checkUsageLimit() {
-    if (!currentUser) return false;
     try {
-      const key = 'usage_' + currentUser.id;
+      const key = 'usage_' + (currentUser ? currentUser.id : 'guest');
       const data = JSON.parse(localStorage.getItem(key) || '[]');
       const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
       const recent = data.filter(t => t > weekAgo);
@@ -898,19 +973,14 @@
   }
 
   async function logUsage() {
-    if (!currentUser) return;
     try {
-      const key = 'usage_' + currentUser.id;
+      const key = 'usage_' + (currentUser ? currentUser.id : 'guest');
       const data = JSON.parse(localStorage.getItem(key) || '[]');
       data.push(Date.now());
       localStorage.setItem(key, JSON.stringify(data));
     } catch(e) {}
   }
 
-  function upgradeStandard() { alert('Stripe課金機能は近日公開予定です！'); }
-  function upgradePremium() { alert('Stripe課金機能は近日公開予定です！'); }
-
-  // ログアウトボタンにイベント設定
   document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
@@ -923,16 +993,13 @@
   let ingredients = [];
   let selectedPerson = '1人';
 
-  // ===== 食材タグ =====
   function addIngredient() {
     const input = document.getElementById('ingredient-input');
     const val = input.value.trim();
     if (!val) return;
     const items = val.split(/[、,，\s]+/).filter(v => v);
     items.forEach(item => {
-      if (!ingredients.includes(item)) {
-        ingredients.push(item);
-      }
+      if (!ingredients.includes(item)) ingredients.push(item);
     });
     input.value = '';
     renderTags();
@@ -955,7 +1022,6 @@
     renderTags();
   }
 
-  // ===== アレルギー =====
   document.querySelectorAll('.allergy-chip input[type="checkbox"]').forEach(checkbox => {
     checkbox.addEventListener('change', function() {
       this.closest('.allergy-chip').classList.toggle('active', this.checked);
@@ -963,11 +1029,9 @@
   });
 
   function getAllergies() {
-    return Array.from(document.querySelectorAll('.allergy-chip input:checked'))
-      .map(el => el.value);
+    return Array.from(document.querySelectorAll('.allergy-chip input:checked')).map(el => el.value);
   }
 
-  // ===== 人数選択 =====
   function selectPerson(btn, val) {
     document.querySelectorAll('.person-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -976,35 +1040,25 @@
 
   // ===== 献立生成 =====
   async function generateMealPlan() {
-    // ログインチェック（一時的に無効化）
-    // if (!currentUser) {
-    //   const errBox = document.getElementById('error-box');
-    //   errBox.textContent = '⚠️ 献立を生成するにはGoogleログインが必要です。';
-    //   errBox.classList.add('show');
-    //   document.getElementById('login-btn').style.display = 'inline-block';
-    //   return;
-    // }
-
-    // 利用制限チェック
     const isLimited = await checkUsageLimit();
     if (isLimited) {
       document.getElementById('upgrade-banner').style.display = 'block';
       document.getElementById('error-box').classList.remove('show');
+      document.getElementById('upgrade-banner').scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
+
     const allergies = getAllergies();
     const budget = document.getElementById('budget-range').value;
     const cookTime = document.getElementById('time-range').value;
     const calorie = document.getElementById('calorie-range').value;
 
-    // UI更新
     document.getElementById('generate-btn').disabled = true;
     document.getElementById('loading').classList.add('show');
     document.getElementById('result-area').classList.remove('show');
     document.getElementById('error-box').classList.remove('show');
     document.getElementById('day-cards').innerHTML = '';
 
-    // プロンプト組み立て
     const ingredientText = ingredients.length > 0
       ? `冷蔵庫にある食材: ${ingredients.join('、')}`
       : '冷蔵庫の食材は特に指定なし（一般的な食材でOK）';
@@ -1049,18 +1103,13 @@
   }
 }`;
 
-    // メッセージ組み立て
-    const userContent = prompt;
-
     try {
       let response;
       try {
         response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [{ role: 'user', content: userContent }]
-          })
+          body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] })
         });
       } catch(fetchErr) {
         throw new Error('通信エラーが発生しました。電波の良い場所でお試しください。(' + fetchErr.message + ')');
@@ -1091,11 +1140,8 @@
       } catch(e) {
         const jsonMatch = clean.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
-          try {
-            parsed = JSON.parse(jsonMatch[0]);
-          } catch(e2) {
-            throw new Error('献立データの形式が不正でした。もう一度お試しください。');
-          }
+          try { parsed = JSON.parse(jsonMatch[0]); }
+          catch(e2) { throw new Error('献立データの形式が不正でした。もう一度お試しください。'); }
         } else {
           throw new Error('献立データが見つかりませんでした。もう一度お試しください。');
         }
@@ -1113,32 +1159,20 @@
       const errBox = document.getElementById('error-box');
       errBox.textContent = '⚠️ ' + (err.message || '生成に失敗しました。しばらく経ってからお試しください。');
       errBox.classList.add('show');
-      console.error('生成エラー詳細:', err);
     } finally {
       document.getElementById('loading').classList.remove('show');
       document.getElementById('generate-btn').disabled = false;
     }
   }
 
-  // ===== 結果レンダリング =====
   function renderResult(data, targetCalorie) {
     const days = data.days || [];
     const shopping = data.shopping || [];
     const avg = data.weeklyAvg || {};
 
-    // 献立カード
     const container = document.getElementById('day-cards');
     const colors = ['#2d5a27','#3d7a32','#4a8a3f','#5a9a4f','#3d7a32','#2d5a27','#4a8a3f'];
-    container.innerHTML = days.map((d, i) => {
-      const recipe = d.recipe || {};
-      const ingredients = (recipe.ingredients || []).map(ing =>
-        `<span class="recipe-ingredient-tag">${ing}</span>`
-      ).join('');
-      const steps = (recipe.steps || []).map((step, si) =>
-        `<li class="recipe-step"><div class="recipe-step-num">${si+1}</div><div>${step}</div></li>`
-      ).join('');
-
-      return `
+    container.innerHTML = days.map((d, i) => `
       <div class="day-card" style="animation-delay:${i*0.08}s;border-left-color:${colors[i]}">
         <div class="day-label">${d.day}</div>
         <div class="day-menu">${d.menu}</div>
@@ -1152,10 +1186,8 @@
         <button class="recipe-toggle" onclick="toggleRecipe(${i})">📖 レシピを見る ▼</button>
         <div class="recipe-panel" id="recipe-${i}"></div>
       </div>
-    `}).join('');
+    `).join('');
 
-    // 買い物リスト
-    const shopCard = document.getElementById('shopping-card');
     const shopItems = document.getElementById('shopping-items');
     shopItems.innerHTML = shopping.map((s, i) => `
       <div class="shopping-item" id="shop-${i}">
@@ -1164,9 +1196,8 @@
       </div>
     `).join('');
     document.getElementById('budget-total-val').textContent = '¥' + Number(data.totalPrice || 0).toLocaleString();
-    shopCard.style.display = 'block';
+    document.getElementById('shopping-card').style.display = 'block';
 
-    // 栄養バランス
     const calPct = Math.min(100, (avg.calories / Number(targetCalorie)) * 100);
     const protPct = Math.min(100, (avg.protein / 70) * 100);
     const fatPct = Math.min(100, (avg.fat / 70) * 100);
@@ -1185,31 +1216,26 @@
     document.getElementById('val-carb').textContent = (avg.carbs || '—') + 'g';
     document.getElementById('nutrition-summary').style.display = 'block';
 
-    // 表示
     document.getElementById('result-area').classList.add('show');
     document.getElementById('result-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // レシピ展開（個別取得）
   async function toggleRecipe(i) {
     const panel = document.getElementById('recipe-' + i);
     const btn = panel.previousElementSibling;
 
-    // すでに開いている場合は閉じる
     if (panel.classList.contains('open')) {
       panel.classList.remove('open');
       btn.textContent = '📖 レシピを見る ▼';
       return;
     }
 
-    // すでに取得済みの場合はそのまま開く
     if (panel.dataset.loaded === 'true') {
       panel.classList.add('open');
       btn.textContent = '📖 レシピを閉じる ▲';
       return;
     }
 
-    // ローディング表示
     btn.textContent = '⏳ レシピを取得中...';
     btn.disabled = true;
     panel.innerHTML = '<div style="padding:12px;color:var(--text-light);font-size:13px;">レシピを生成しています...</div>';
@@ -1219,39 +1245,24 @@
     const cookTime = document.getElementById('time-range').value;
 
     try {
-      let response;
-      try {
-        response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [{
-              role: 'user',
-              content: `「${menuName}」のレシピを教えてください。調理時間は${cookTime}分以内。シンプルに。
-必ず以下のJSON形式のみで回答。説明文不要。数値不要。
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{
+            role: 'user',
+            content: `「${menuName}」のレシピを教えてください。調理時間は${cookTime}分以内。シンプルに。
+必ず以下のJSON形式のみで回答。説明文不要。
 
 {"time":"20分","ingredients":["鶏もも肉200g","醤油大さじ2"],"steps":["切る","焼く","味付け"]}`
-            }]
-          })
-        });
-      } catch(fetchErr) {
-        throw new Error('通信エラー: ' + fetchErr.message);
-      }
+          }]
+        })
+      });
 
-      if (!response.ok) {
-        throw new Error('サーバーエラー: ' + response.status);
-      }
+      if (!response.ok) throw new Error('サーバーエラー: ' + response.status);
 
-      let data;
-      try {
-        data = await response.json();
-      } catch(e) {
-        throw new Error('応答の読み取りに失敗しました');
-      }
-
-      if (!data.content || !data.content.length) {
-        throw new Error('応答が空でした');
-      }
+      const data = await response.json();
+      if (!data.content || !data.content.length) throw new Error('応答が空でした');
 
       const text = data.content.map(b => b.text || '').join('');
       const clean = text.replace(/```json[\s\S]*?```|```/g, '').trim();
@@ -1259,33 +1270,31 @@
       if (!jsonMatch) throw new Error('レシピデータが見つかりません');
 
       const recipe = JSON.parse(jsonMatch[0]);
-
-      const ingredients = (recipe.ingredients || []).map(ing =>
+      const ingredientsHtml = (recipe.ingredients || []).map(ing =>
         `<span class="recipe-ingredient-tag">${ing}</span>`
       ).join('');
-      const steps = (recipe.steps || []).map((step, si) =>
+      const stepsHtml = (recipe.steps || []).map((step, si) =>
         `<li class="recipe-step"><div class="recipe-step-num">${si+1}</div><div>${step}</div></li>`
       ).join('');
 
       panel.innerHTML = `
         <div class="recipe-time">⏱️ 調理時間：${recipe.time || '—'}</div>
         <div class="recipe-section-title">🛒 材料</div>
-        <div class="recipe-ingredients">${ingredients}</div>
+        <div class="recipe-ingredients">${ingredientsHtml}</div>
         <div class="recipe-section-title">👩‍🍳 作り方</div>
-        <ul class="recipe-steps">${steps}</ul>
+        <ul class="recipe-steps">${stepsHtml}</ul>
       `;
       panel.dataset.loaded = 'true';
       btn.textContent = '📖 レシピを閉じる ▲';
 
     } catch(err) {
-      panel.innerHTML = `<div style="padding:12px;color:#c62828;font-size:13px;">⚠️ ${err.message || 'レシピの取得に失敗しました'}。もう一度お試しください。</div>`;
+      panel.innerHTML = `<div style="padding:12px;color:#c62828;font-size:13px;">⚠️ ${err.message}。もう一度お試しください。</div>`;
       btn.textContent = '📖 レシピを見る ▼';
       panel.dataset.loaded = 'false';
     }
     btn.disabled = false;
   }
 
-  // チェックボックス
   function toggleCheck(i) {
     const item = document.getElementById('shop-' + i);
     const check = item.querySelector('.check');
@@ -1293,7 +1302,6 @@
     item.classList.toggle('checked-item');
   }
 
-  // PWAバナー（iOS）
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
   if (isIOS && !isStandalone) {
